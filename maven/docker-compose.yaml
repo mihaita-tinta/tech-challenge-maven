@@ -1,0 +1,36 @@
+version: '2.4'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.3.1
+    ports:
+      - "32181:32181"
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MinRAMPercentage=75.0 -XX:MaxRAMPercentage=90.0 -XX:+HeapDumpOnOutOfMemoryError"
+      ZOOKEEPER_CLIENT_PORT: 32181
+      ZOOKEEPER_TICK_TIME: 2000
+    extra_hosts:
+      - "moby:127.0.0.1"
+      - "localhost:127.0.0.1"
+    mem_limit: 200M
+    cpuset: "0"
+
+  kafka:
+    image: confluentinc/cp-kafka
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    links:
+      - zookeeper:zookeeper
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MinRAMPercentage=75.0 -XX:MaxRAMPercentage=90.0 -XX:+HeapDumpOnOutOfMemoryError"
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:32181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    extra_hosts:
+      - "localhost:127.0.0.1"
+    mem_limit: 1000m
+    cpuset: "1"

@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            my-test:
+              - instanceId: my1
+                serviceId: my-test
+                host: localhost
+                port: 8080
+                secure: false
