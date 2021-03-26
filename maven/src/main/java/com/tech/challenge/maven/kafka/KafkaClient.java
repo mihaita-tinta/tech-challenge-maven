@@ -7,6 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
+import reactor.core.publisher.Mono;
 
 @Component
 public class KafkaClient {
@@ -20,7 +21,9 @@ public class KafkaClient {
         this.kafka = kafka;
     }
 
-    public ListenableFuture<SendResult<Integer, ShotFired>> shoot(ShotFired shotFired) {
-        return kafka.send(topic, shotFired);
+    public Mono<SendResult<Integer, ShotFired>> shoot(ShotFired shotFired) {
+        Mono<SendResult<Integer, ShotFired>> sendResultMono = Mono.fromFuture(kafka.send(topic, shotFired).completable());
+        return
+                sendResultMono;
     }
 }

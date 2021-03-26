@@ -39,7 +39,9 @@ public class KafkaConfig {
     @KafkaListener(id = "maven-game-started", topics = "${maven.kafka.topicGameStarted}")
     public void listenGameStarted(GameStarted gameStarted) {
         log.info("listenGameStarted - input: {}", gameStarted);
-        mavenAgent.onGameStarted(gameStarted);
+        mavenAgent
+                .onGameStarted(gameStarted)
+                .subscribe();
     }
 
     @KafkaListener(id = "maven-game-ended", topics = "${maven.kafka.topicGameEnded}")

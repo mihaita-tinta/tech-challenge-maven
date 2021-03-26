@@ -76,21 +76,8 @@ public class MavenAgent {
 
     }
 
-    public void onRoundStarted(RoundStarted roundStarted) {
+    public Mono<Void> onRoundStarted(RoundStarted roundStarted) {
         log.info("onRoundStarted - round: {}", roundStarted);
-
-        shoot(roundStarted);
-
-    }
-
-    public void onRoundEnded(RoundEnded roundEnded) {
-        log.info("onRoundEnded - round: {}", roundEnded);
-        brain.observeReward(roundEnded);
-
-    }
-
-
-    void shoot(RoundStarted roundStarted) {
 
         ShotFired shotFired = new ShotFired();
         shotFired.setGameId(roundStarted.getGameId());
@@ -101,8 +88,19 @@ public class MavenAgent {
         shotFired.setX(xy.getT1());
         shotFired.setY(xy.getT2());
 
-        kafka.shoot(shotFired)
-                .addCallback(s -> log.info("ok"), e -> log.error("error", e));
+        return kafka.shoot(shotFired)
+                .doOnNext(r -> log.debug("shoot - round: {}, success: {}", roundStarted, shotFired))
+                .doOnError(e -> {
+                    log.error("shoot - error", e);
+                })
+                .then();
+
+    }
+
+    public void onRoundEnded(RoundEnded roundEnded) {
+        log.info("onRoundEnded - round: {}", roundEnded);
+        brain.observeReward(roundEnded);
+
     }
 
     MavenBrain getBrain() {
