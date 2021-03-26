@@ -1,0 +1,16 @@
+{
+  "$id": "https://battleships.cc/game.ended.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "description": "Schema to describe an ended game.",
+  "properties": {
+    "gameId": {
+      "type": "string"
+    },
+    "tournamentId": {
+      "type": "string"
+    }
+  },
+  "title": "GameEnded",
+  "type": "object"
+}

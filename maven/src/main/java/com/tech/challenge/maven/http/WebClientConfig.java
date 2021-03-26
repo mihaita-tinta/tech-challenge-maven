@@ -1,8 +1,9 @@
 package com.tech.challenge.maven.http;
 
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import com.tech.challenge.maven.config.MavenConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -11,10 +12,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    @LoadBalanced
+//    @LoadBalanced
     @Bean
-    WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
+    @Primary
+    WebClient webClient(MavenConfigurationProperties props) {
+        return WebClient.builder()
+                .baseUrl(props.getHttp().getBaseUrl())
+                .build();
     }
 
     private ExchangeFilterFunction headerFilter() {

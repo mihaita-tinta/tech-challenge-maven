@@ -1,0 +1,40 @@
+{
+  "$id": "https://battleships.cc/round.ended.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "description": "Schema to describe an ended round.",
+  "title": "RoundEnded",
+  "type": "object",
+  "properties": {
+    "gameId": {
+      "type": "string"
+    },
+    "tournamentId": {
+      "type": "string"
+    },
+    "roundNo": {
+      "type": "integer"
+    },
+    "shots": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "status": {
+            "enum": [
+              "HIT",
+              "MISS",
+              "KILL"
+            ],
+            "type": "string"
+          },
+          "x": {
+            "type": "integer"
+          },
+          "y": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

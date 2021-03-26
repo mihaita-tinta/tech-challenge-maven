@@ -1,5 +1,7 @@
 package com.tech.challenge.maven;
 
+import com.tech.challenge.maven.http.MavenHttpClient;
+import com.tech.challenge.maven.http.model.LoginResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +16,7 @@ public class SomeController {
     String port;
 
     @Autowired
-    MavenClient client;
+    MavenHttpClient client;
 
     @GetMapping("/test")
     public Mono<String> get() {

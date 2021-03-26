@@ -1,0 +1,30 @@
+{
+  "$id": "https://battleships.cc/shots.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "description": "Schema to describe a shot",
+  "properties": {
+    "tournamentId": {
+      "description": "id of the tournament",
+      "type": "string"
+    },
+    "gameId": {
+      "description": "game id",
+      "type": "string"
+    },
+    "roundNo": {
+      "description": "round number",
+      "type": "integer"
+    },
+    "x": {
+      "description": "x coordinate of the axis",
+      "type": "integer"
+    },
+    "y": {
+      "description": "y coordinate of the axis",
+      "type": "integer"
+    }
+  },
+  "title": "ShotFired",
+  "type": "object"
+}

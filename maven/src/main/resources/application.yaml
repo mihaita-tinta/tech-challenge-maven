@@ -1,17 +1,33 @@
 server:
   port: 8080
 spring:
-  cloud:
-    discovery:
-      client:
-        simple:
-          instances:
-            my-test:
-              - instanceId: my1
-                serviceId: my-test
-                host: localhost
-                port: 8080
-                secure: false
+#  cloud:
+#    discovery:
+#      client:
+#        simple:
+#          instances:
+#            backend:
+#              - instanceId: backend1
+#                serviceId: backend
+#                host: localhost
+#                port: 8080
+#                secure: false #true?
   kafka:
     consumer:
       auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+maven:
+  username: mih
+  password: maven
+  kafka:
+    topicGameStarted: topicGameStarted
+    topicGameEnded: topicGameEnded
+    topicRoundStarted: topicRoundStarted
+    topicRoundEnded: topicRoundEnded
+    topicRoundShoot: topicRoundShoot
+  http:
+    scheme: http
+    host: localhost
+    port: 8080
