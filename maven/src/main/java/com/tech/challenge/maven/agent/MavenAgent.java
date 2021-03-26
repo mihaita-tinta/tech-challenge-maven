@@ -5,12 +5,15 @@ import com.tech.challenge.maven.http.MavenHttpClient;
 import com.tech.challenge.maven.http.model.BattleshipRequestBody;
 import com.tech.challenge.maven.kafka.KafkaClient;
 import com.tech.challenge.maven.kafka.events.*;
+import com.tech.challenge.maven.model.BattleshipPosition;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import reactor.core.Exceptions;
+import reactor.core.publisher.Mono;
 import reactor.util.context.Context;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
+import reactor.util.function.Tuples;
 import reactor.util.retry.Retry;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -30,37 +33,41 @@ public class MavenAgent {
         brain = new MavenBrain();// newborn
     }
 
-    public void onGameStarted(GameStarted gameStarted) {
+    public Mono<String> onGameStarted(GameStarted gameStarted) {
         log.info("onGameStarted - game: {}", gameStarted);
         brain.gameStarted(gameStarted);
 
-
-        Retry customStrategy = Retry.from(companion -> companion.handle((retrySignal, sink) -> {
-            Context ctx = sink.currentContext();
-            int retriesLeft = ctx.getOrDefault("retriesLeft", maxAttempts);
-            if (retriesLeft > 0) {
-                sink.next(Context.of(
-                        "retriesLeft", retriesLeft - 1,
-                        "lastError", retrySignal.failure()
-                ));
-            } else {
-                sink.error(Exceptions.retryExhausted("retries exhausted", retrySignal.failure()));
-            }
-        }));
-
-        Tuple3<Integer, Integer, BattleshipRequestBody.Direction> battlefieldPosition = brain.getNextBattlefieldPosition();
-
-        http.placeBattleship(gameStarted.getTournamentId(),
-                gameStarted.getGameId(),
-                battlefieldPosition.getT1(),
-                battlefieldPosition.getT2(),
-                battlefieldPosition.getT3())
+        BattleshipPosition battlefieldPosition = brain.getNextBattlefieldPosition();
+        return placeBattlefield(gameStarted, battlefieldPosition, 0)
                 .doOnError(e -> {
                     log.error("onGameStarted - failed to place battleship: {}", battlefieldPosition, e);
-                })
-                .retryWhen(customStrategy)
-                .subscribe();
+                });
+    }
 
+    private Mono<String> placeBattlefield(GameStarted gameStarted, BattleshipPosition battlefieldPosition, int attempt) {
+        log.warn("placeBattlefield - attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+        return Mono
+                .deferContextual(ctx -> {
+                    Integer retriesLeft = ctx.getOrDefault("retriesLeft", maxAttempts - attempt);
+                    if (retriesLeft > 0) {
+                        return Mono.just(ctx);
+                    }
+                    return Mono.error(new IllegalStateException("no more retries"));
+                })
+                .flatMap(ctx -> http.placeBattleship(gameStarted.getTournamentId(),
+                        gameStarted.getGameId(),
+                        battlefieldPosition.getX(),
+                        battlefieldPosition.getY(),
+                        battlefieldPosition.getDirection())
+                        .doOnNext(success -> {
+                            brain.setCurrentPosition(battlefieldPosition);
+                            log.info("placeBattlefield - successful attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+                        }))
+                .onErrorResume(e -> {
+                    log.warn("placeBattlefield - failed attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+                    BattleshipPosition newBattlefieldPosition = brain.getNextBattlefieldPosition();
+                    return placeBattlefield(gameStarted, newBattlefieldPosition, attempt + 1);
+                });
     }
 
     public void onGameEnded(GameEnded gameEnded) {
@@ -96,5 +103,9 @@ public class MavenAgent {
 
         kafka.shoot(shotFired)
                 .addCallback(s -> log.info("ok"), e -> log.error("error", e));
+    }
+
+    MavenBrain getBrain() {
+        return brain;
     }
 }
