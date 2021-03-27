@@ -6,78 +6,39 @@ package com.tech.challenge.maven.kafka.events;
 import lombok.ToString;
 
 /**
- *
- *     "gameId": {
- *       "description": "ID of the game",
- *       "type": "string"
- *     },
- *     "tournamentId": {
- *       "description": "ID of the tournament",
- *       "type": "string"
- *     },
- *     "battlegroundSize": {
- *       "description": "The size of the battleground - a matrix of battlegroundSize x battlegroundSize",
- *       "type": "number"
- *     },
- *     core
- *     "battleshipTemplate":
+ * Schema to describe an ended game.
  */
 @ToString
-public class GameStarted {
+public class GameEnded {
+    
     
     private String gameId;
-
+    
     public String getGameId () { return this.gameId; }
 
     public void setGameId (String gameId) {
         this.gameId = gameId;
-
+        
     }
 
+    
     private String tournamentId;
-
+    
     public String getTournamentId () { return this.tournamentId; }
 
     public void setTournamentId (String tournamentId) {
         this.tournamentId = tournamentId;
-
-    }
-    private int battlegroundSize;
-
-    public int getBattlegroundSize() {
-        return battlegroundSize;
+        
     }
 
-    public void setBattlegroundSize(int battlegroundSize) {
-        this.battlegroundSize = battlegroundSize;
-    }
-
-    private Cell core;
-
-    public Cell getCore() {
-        return core;
-    }
-
-    public void setCore(Cell core) {
-        this.core = core;
-    }
-
-    private BattleshipTemplate battleshipTemplate;
-
-    public BattleshipTemplate getBattleshipTemplate() {
-        return battleshipTemplate;
-    }
-
-    public void setBattleshipTemplate(BattleshipTemplate battleshipTemplate) {
-        this.battleshipTemplate = battleshipTemplate;
-    }
+    
 
     @Override
     public boolean equals(Object obj) {
         if (obj==null) return false;
-        if ( ! (obj instanceof GameStarted)) return false;
+        if ( ! (obj instanceof GameEnded)) return false;
 
-        GameStarted _typeInst = (GameStarted) obj;
+        GameEnded _typeInst = (GameEnded) obj;
        // handling of non-array-types
     
         String _gameId = _typeInst.getGameId ();

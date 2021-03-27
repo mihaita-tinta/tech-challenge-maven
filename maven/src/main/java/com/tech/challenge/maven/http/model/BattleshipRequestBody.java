@@ -36,6 +36,29 @@ public class BattleshipRequestBody {
         EAST,
         WEST,
         SOUTH,
-        NORTH
+        NORTH;
+
+        public int getXLimit(int width, int height) {
+            switch (this) {
+                case NORTH:
+                case SOUTH:
+                    return width;
+                case EAST:
+                case WEST:
+                default:
+                    return height;
+            }
+        }
+        public int getYLimit(int width, int height) {
+            switch (this) {
+                case NORTH:
+                case SOUTH:
+                    return height;
+                case EAST:
+                case WEST:
+                default:
+                    return width;
+            }
+        }
     }
 }

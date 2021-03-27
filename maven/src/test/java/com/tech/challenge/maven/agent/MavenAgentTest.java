@@ -1,10 +1,12 @@
 package com.tech.challenge.maven.agent;
 
+import com.tech.challenge.maven.agent.ai.RandomBattleshipPositionDecider;
 import com.tech.challenge.maven.http.MavenHttpClient;
 import com.tech.challenge.maven.kafka.KafkaClient;
 import com.tech.challenge.maven.kafka.events.GameStarted;
 import com.tech.challenge.maven.kafka.events.RoundStarted;
 import com.tech.challenge.maven.kafka.events.ShotFired;
+import com.tech.challenge.maven.model.BattleshipPosition;
 import org.assertj.core.internal.bytebuddy.matcher.ElementMatchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,7 @@ import reactor.test.StepVerifier;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MavenAgentTest {
@@ -36,8 +39,21 @@ class MavenAgentTest {
     @Mock
     SendResult<Integer, ShotFired> shot;
 
+    @Mock
+    RandomBattleshipPositionDecider battleshipPositionDecider;
+
+    @Mock
+    BattleshipPosition pos1;
+    @Mock
+    BattleshipPosition pos2;
+    @Mock
+    BattleshipPosition pos3;
+
     @Test
     public void testOnGameStartedWithRetries() {
+
+        when(battleshipPositionDecider.next(agent.getBrain().getMemory()))
+                .thenReturn(pos1, pos2, pos3);
 
         Mockito.when(http.placeBattleship(any(), any(), anyInt(), anyInt(), any()))
                 .thenReturn(
@@ -54,7 +70,7 @@ class MavenAgentTest {
 
         Mockito.verify(http, times(3)).placeBattleship(any(), any(), anyInt(), anyInt(), any());
 
-        assertEquals(3, agent.getBrain().getCurrentPosition().getX());
+        assertEquals(pos3, agent.getBrain().getMemory().getCurrentPosition());
     }
     @Test
     public void testOnRoundStarted() {

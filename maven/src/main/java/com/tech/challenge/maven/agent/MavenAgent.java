@@ -1,20 +1,15 @@
 package com.tech.challenge.maven.agent;
 
+import com.tech.challenge.maven.agent.ai.RandomBattleshipPositionDecider;
 import com.tech.challenge.maven.config.MavenConfigurationProperties;
 import com.tech.challenge.maven.http.MavenHttpClient;
-import com.tech.challenge.maven.http.model.BattleshipRequestBody;
 import com.tech.challenge.maven.kafka.KafkaClient;
 import com.tech.challenge.maven.kafka.events.*;
 import com.tech.challenge.maven.model.BattleshipPosition;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
-import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
-import reactor.util.context.Context;
 import reactor.util.function.Tuple2;
-import reactor.util.function.Tuple3;
-import reactor.util.function.Tuples;
-import reactor.util.retry.Retry;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -25,10 +20,13 @@ public class MavenAgent {
     private final KafkaClient kafka;
     private final MavenBrain brain;
     private final int maxAttempts = 10;
+    private final RandomBattleshipPositionDecider battleshipPositionDecider;
 
-    public MavenAgent(MavenHttpClient http, KafkaClient kafka, MavenConfigurationProperties properties) {
+    public MavenAgent(MavenHttpClient http, KafkaClient kafka, MavenConfigurationProperties properties,
+                      RandomBattleshipPositionDecider battleshipPositionDecider) {
         this.http = http;
         this.kafka = kafka;
+        this.battleshipPositionDecider = battleshipPositionDecider;
 
         brain = new MavenBrain();// newborn
     }
@@ -37,7 +35,7 @@ public class MavenAgent {
         log.info("onGameStarted - game: {}", gameStarted);
         brain.gameStarted(gameStarted);
 
-        BattleshipPosition battlefieldPosition = brain.getNextBattlefieldPosition();
+        BattleshipPosition battlefieldPosition = battleshipPositionDecider.next(brain.getMemory());
         return placeBattlefield(gameStarted, battlefieldPosition, 0)
                 .doOnError(e -> {
                     log.error("onGameStarted - failed to place battleship: {}", battlefieldPosition, e);
@@ -60,12 +58,12 @@ public class MavenAgent {
                         battlefieldPosition.getY(),
                         battlefieldPosition.getDirection())
                         .doOnNext(success -> {
-                            brain.setCurrentPosition(battlefieldPosition);
+                            brain.rememberBattleshipPosition(battlefieldPosition);
                             log.info("placeBattlefield - successful attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
                         }))
                 .onErrorResume(e -> {
                     log.warn("placeBattlefield - failed attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
-                    BattleshipPosition newBattlefieldPosition = brain.getNextBattlefieldPosition();
+                    BattleshipPosition newBattlefieldPosition = battleshipPositionDecider.next(brain.getMemory());
                     return placeBattlefield(gameStarted, newBattlefieldPosition, attempt + 1);
                 });
     }
@@ -99,8 +97,7 @@ public class MavenAgent {
 
     public void onRoundEnded(RoundEnded roundEnded) {
         log.info("onRoundEnded - round: {}", roundEnded);
-        brain.observeReward(roundEnded);
-
+        brain.roundEnded(roundEnded);
     }
 
     MavenBrain getBrain() {

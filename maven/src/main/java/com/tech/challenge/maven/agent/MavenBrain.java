@@ -1,52 +1,44 @@
 package com.tech.challenge.maven.agent;
 
+import com.tech.challenge.maven.agent.ai.RandomBattleshipPositionDecider;
 import com.tech.challenge.maven.http.model.BattleshipRequestBody;
-import com.tech.challenge.maven.kafka.events.BattleshipTemplate;
-import com.tech.challenge.maven.kafka.events.GameEnded;
-import com.tech.challenge.maven.kafka.events.GameStarted;
-import com.tech.challenge.maven.kafka.events.RoundEnded;
+import com.tech.challenge.maven.kafka.events.*;
 import com.tech.challenge.maven.model.BattleshipPosition;
 import lombok.Data;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
+import java.util.Random;
+
 @Data
 public class MavenBrain {
 
-    int currentBattlegroundSize;
-    BattleshipPosition currentPosition;
+    final MavenMemory memory = new MavenMemory();
 
-
-    public void observeReward(RoundEnded roundEnded) {
-
+    public void roundEnded(RoundEnded roundEnded) {
+        memory.roundEnded(roundEnded);
     }
 
     public void gameEnded(GameEnded gameEnded) {
-
+        memory.gameEnded(gameEnded);
     }
 
     public void gameStarted(GameStarted gameStarted) {
-        currentBattlegroundSize = gameStarted.getBattlegroundSize();
-        currentPosition = new BattleshipPosition();
-        currentPosition.setCurrentBattleshipTemplate(gameStarted.getBattleshipTemplate());
-
+        memory.gameStarted(gameStarted);
+    }
+    public void roundStart(RoundStarted roundStarted) {
+        memory.roundStart(roundStarted);
     }
 
-
-    public BattleshipPosition getNextBattlefieldPosition() {
-
-        int x = currentPosition != null ? currentPosition.getX() + 1 : 0;// TODO fun part here
-        int y = 0;
-        BattleshipRequestBody.Direction direction = BattleshipRequestBody.Direction.EAST;
-
-        currentPosition.setX(x);
-        currentPosition.setY(y);
-        currentPosition.setDirection(direction);
-
-        return currentPosition;
+    public void rememberBattleshipPosition(BattleshipPosition battleshipPosition) {
+        memory.setCurrentPosition(battleshipPosition);
     }
+
     public Tuple2<Integer, Integer> getNextTargetPoint() {
+
+        int battlegroundSize = memory.getCurrentBattlegroundSize();
+        BattleshipTemplate template = memory.getCurrentBattleshipTemplate();
 
         int x = 0;// TODO fun part here
         int y = 0;
