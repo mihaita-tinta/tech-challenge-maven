@@ -14,20 +14,28 @@ spring:
 #                secure: false #true?
   kafka:
     consumer:
+      bootstrap-servers: battleships.cc:9092
       auto-offset-reset: earliest
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        basic.auth.credentials.source: XWAX5C4GBM3GYFGL
+        basic.auth.user.info: XWAX5C4GBM3GYFGL:8MDlm53MB00dAjk5pvtko26JYU0p1+PqFC4pfjTVubk3OlqQvKf93VsuYpZQXysS
     producer:
+      bootstrap-servers: battleships.cc:9092
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+          basic.auth.credentials.source: XWAX5C4GBM3GYFGL
+          basic.auth.user.info: XWAX5C4GBM3GYFGL:8MDlm53MB00dAjk5pvtko26JYU0p1+PqFC4pfjTVubk3OlqQvKf93VsuYpZQXysS
 maven:
-  username: mih
-  password: maven
+  username: maven
+  password: qmuzGEmgr7UWMk!FG3ToJM
   kafka:
-    topicGameStarted: topicGameStarted
-    topicGameEnded: topicGameEnded
-    topicRoundStarted: topicRoundStarted
-    topicRoundEnded: topicRoundEnded
-    topicRoundShoot: topicRoundShoot
+    topicGameStarted: cc.battleships.game.started
+    topicGameEnded: cc.battleships.game.ended
+    topicRoundStarted: cc.battleships.round.started
+    topicRoundEnded: cc.battleships.round.ended
+    topicRoundShoot: cc.battleships.shot
   http:
-    scheme: http
-    host: localhost
-    port: 8080
+    scheme: https
+    host: battleships.cc
+    port: 443

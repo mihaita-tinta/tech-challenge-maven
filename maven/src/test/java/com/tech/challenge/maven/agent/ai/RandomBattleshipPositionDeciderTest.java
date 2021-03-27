@@ -15,7 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +33,7 @@ class RandomBattleshipPositionDeciderTest {
 
     @Test
     public void test() {
-        int size = 5;
+        int size = 17;
         BattleshipTemplate template = new BattleshipTemplate();
         template.setHeight(2);
         template.setWidth(3);
@@ -53,12 +55,14 @@ class RandomBattleshipPositionDeciderTest {
         Mockito.when(memory.getCurrentBattleshipTemplate())
                 .thenReturn(template);
 
-        RandomBattleshipPositionDecider decider = new RandomBattleshipPositionDecider();
 
-        BattleshipPosition next = decider.next(memory);
+        Rectangle screen = new Rectangle(size, size);
 
-        log.info("next: {}", next);
-        WorldHelper.print(size, next);
+        IntStream.range(0, 100)
+                .mapToObj(i -> decider.next(memory))
+                .forEach(pos -> {
+                    assertTrue(screen.contains(pos.getX(), pos.getY()));
+                });
 
     }
 }

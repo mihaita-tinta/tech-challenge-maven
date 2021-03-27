@@ -34,6 +34,12 @@ public class MavenBrain {
     public void rememberBattleshipPosition(BattleshipPosition battleshipPosition) {
         memory.setCurrentPosition(battleshipPosition);
     }
+    public void rememberBattleshipPositionFailed(BattleshipPosition battleshipPosition) {
+        memory.setCurrentPosition(battleshipPosition);
+    }
+    public void rememberBattleshipPositionFailedAttempt(BattleshipPosition battleshipPosition) {
+        memory.rememberBattleshipPositionFailedAttempt(battleshipPosition);
+    }
 
     public Tuple2<Integer, Integer> getNextTargetPoint() {
 

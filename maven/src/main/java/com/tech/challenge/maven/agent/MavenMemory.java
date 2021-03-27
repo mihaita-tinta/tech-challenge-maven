@@ -21,6 +21,7 @@ public class MavenMemory {
     Replay currentPlay;
     Shot currentShot;
 
+    List<BattleshipPosition> failedPositionAttempts = new ArrayList<>();
     List<Replay> replays = new ArrayList<>();
 
     public void gameStarted(GameStarted gameStarted) {
@@ -37,6 +38,7 @@ public class MavenMemory {
 
     public void gameEnded(GameEnded gameEnded) {
         replays.add(currentPlay);
+        failedPositionAttempts.clear();
     }
 
     public void roundEnded(RoundEnded roundEnded) {
@@ -58,5 +60,8 @@ public class MavenMemory {
 
     }
 
+    public void rememberBattleshipPositionFailedAttempt(BattleshipPosition battleshipPosition) {
+        failedPositionAttempts.add(battleshipPosition);
+    }
 
 }

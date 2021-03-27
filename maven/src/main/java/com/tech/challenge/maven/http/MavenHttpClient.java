@@ -7,9 +7,11 @@ import com.tech.challenge.maven.http.model.LoginRequest;
 import com.tech.challenge.maven.http.model.LoginResponse;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
@@ -60,9 +62,17 @@ public class MavenHttpClient {
                 .uri("api/tournaments/{tournamentId}/teams", tournamentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(headers -> headers.setBearerAuth(jwt))
-                .retrieve()
-                .bodyToMono(String.class)
-                .doOnNext(res -> log.info("connect - registered successfully for tournamentId: {}", tournamentId))
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        log.info("connect - registered successfully for tournamentId: {}", tournamentId);
+                        return response.bodyToMono(String.class);
+                    }
+
+                    return response.bodyToMono(String.class)
+                            .doOnNext(res -> {
+                                log.info("connect - failed to register for tournamentId: {}, res: {}", tournamentId, res);
+                            });
+                })
                 ;
     }
 

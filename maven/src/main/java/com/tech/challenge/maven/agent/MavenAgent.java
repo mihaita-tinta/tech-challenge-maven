@@ -63,6 +63,8 @@ public class MavenAgent {
                         }))
                 .onErrorResume(e -> {
                     log.warn("placeBattlefield - failed attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+                    brain.rememberBattleshipPositionFailedAttempt(battlefieldPosition);
+                    // TODO verify this is caused by a valid position on the map, indicating there may be an opponent boat there.
                     BattleshipPosition newBattlefieldPosition = battleshipPositionDecider.next(brain.getMemory());
                     return placeBattlefield(gameStarted, newBattlefieldPosition, attempt + 1);
                 });
