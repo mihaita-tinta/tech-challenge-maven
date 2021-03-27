@@ -9,14 +9,7 @@ import com.tech.challenge.maven.kafka.events.*;
 import com.tech.challenge.maven.model.BattleshipPosition;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -48,6 +41,7 @@ public class MavenAgent {
             return;
 
         brain.gameStarted(gameStarted);
+
         placeBattlefield(gameStarted);
     }
 
@@ -58,7 +52,7 @@ public class MavenAgent {
 
         boolean done = false;
         int currentAttempt = 0;
-        while (!done && currentAttempt < 10) {
+        while (!done && currentAttempt < 10) { // quick and dirty
             try {
                 placeInternalAttempt(gameStarted, battlefieldPosition, currentAttempt++);
                 done = true;
@@ -70,15 +64,15 @@ public class MavenAgent {
     }
 
     private void placeInternalAttempt(GameStarted gameStarted, BattleshipPosition battlefieldPosition, int attempt) {
-            http.placeBattleship(gameStarted.getTournamentId(),
-                    gameStarted.getGameId(),
-                    battlefieldPosition.getX(),
-                    battlefieldPosition.getY(),
-                    battlefieldPosition.getDirection())
-                    .doOnNext(success -> {
-                        brain.rememberBattleshipPosition(battlefieldPosition);
-                        log.info("placeBattlefield - successful attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
-                    }).block();
+        http.placeBattleship(gameStarted.getTournamentId(),
+                gameStarted.getGameId(),
+                battlefieldPosition.getX(),
+                battlefieldPosition.getY(),
+                battlefieldPosition.getDirection())
+                .doOnNext(success -> {
+                    brain.rememberBattleshipPosition(battlefieldPosition);
+                    log.info("placeBattlefield - successful attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+                }).block();
 
     }
 

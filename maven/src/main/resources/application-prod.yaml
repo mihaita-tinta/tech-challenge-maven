@@ -1,11 +1,22 @@
 server:
   port: 8080
 spring:
+  #  cloud:
+  #    discovery:
+  #      client:
+  #        simple:
+  #          instances:
+  #            backend:
+  #              - instanceId: backend1
+  #                serviceId: backend
+  #                host: localhost
+  #                port: 8080
+  #                secure: false #true?
   kafka:
     consumer:
       bootstrap-servers: pkc-lq8gm.westeurope.azure.confluent.cloud:9092
       auto-offset-reset: latest
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      #      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         security.protocol: SASL_SSL
         sasl.mechanism: PLAIN
@@ -13,7 +24,7 @@ spring:
       group-id: group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3
     producer:
       bootstrap-servers: pkc-lq8gm.westeurope.azure.confluent.cloud:9092
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      #      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         security.protocol: SASL_SSL
         sasl.mechanism: PLAIN
@@ -22,7 +33,7 @@ maven:
   username: maven
   password: qmuzGEmgr7UWMk!FG3ToJM
   ignoreMessages: false
-  tournamentId: lal3WkLKV0
+  tournamentId: IR1ET1-v9J
   kafka:
     topicGameStarted: cc.battleships.game.started
     topicGameEnded: cc.battleships.game.ended
@@ -30,6 +41,6 @@ maven:
     topicRoundEnded: cc.battleships.round.ended
     topicRoundShoot: cc.battleships.shot
   http:
-    scheme: https
+    scheme: http
     host: prod.battleships.cc
-    port: 443
+    port: 80

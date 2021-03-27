@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.TopicBuilder;
+import reactor.core.scheduler.Schedulers;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -61,7 +62,7 @@ public class KafkaConfig {
         RoundStarted event = mapper.readValue(input, RoundStarted.class);
         mavenAgent
                 .onRoundStarted(event)
-                .subscribe();
+                .subscribeOn(Schedulers.elastic());
     }
 
     @KafkaListener(id = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3-1",groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicRoundEnded}")
