@@ -4,6 +4,7 @@ package com.tech.challenge.maven.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tech.challenge.maven.agent.MavenAgent;
+import com.tech.challenge.maven.config.MavenConfigurationProperties;
 import com.tech.challenge.maven.kafka.events.GameEnded;
 import com.tech.challenge.maven.kafka.events.GameStarted;
 import com.tech.challenge.maven.kafka.events.RoundEnded;
@@ -26,6 +27,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 @EnableKafka
 public class KafkaConfig {
     private static final Logger log = getLogger(KafkaConfig.class);
+
+    @Autowired
+    MavenConfigurationProperties properties;
 
     @Autowired
     MavenAgent mavenAgent;
@@ -51,6 +55,9 @@ public class KafkaConfig {
     @KafkaListener(id = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3-2", groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicRoundStarted}")
     public void listenRoundStarted(String input) throws JsonProcessingException {
         log.debug("listenRoundStarted - input: {}", input);
+        if (input.contains(properties.getTournamentId())) {
+            log.info("listenRoundStarted - input: {}", input);
+        }
         RoundStarted event = mapper.readValue(input, RoundStarted.class);
         mavenAgent
                 .onRoundStarted(event)
@@ -60,6 +67,10 @@ public class KafkaConfig {
     @KafkaListener(id = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3-1",groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicRoundEnded}")
     public void listenRoundEnded(String input) throws JsonProcessingException {
         log.debug("listenRoundEnded - input: {}", input);
+
+        if (input.contains(properties.getTournamentId())) {
+            log.info("listenRoundEnded - input: {}", input);
+        }
         RoundEnded roundEnded = mapper.readValue(input, RoundEnded.class);
         mavenAgent.onRoundEnded(roundEnded);
     }
