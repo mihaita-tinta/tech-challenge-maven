@@ -41,15 +41,8 @@ public class MavenBrain {
         memory.rememberBattleshipPositionFailedAttempt(battleshipPosition);
     }
 
-    public Tuple2<Integer, Integer> getNextTargetPoint() {
-
-        int battlegroundSize = memory.getCurrentBattlegroundSize();
-        BattleshipTemplate template = memory.getCurrentBattleshipTemplate();
-
-        int x = 0;// TODO fun part here
-        int y = 0;
-
-        // TODO remember the action
-        return Tuples.of(x, y);
+    public void rememberShoot(int x, int y) {
+        memory.currentShot.setX(x);
+        memory.currentShot.setY(y);
     }
 }

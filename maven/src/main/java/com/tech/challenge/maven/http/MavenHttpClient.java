@@ -15,7 +15,11 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
+import java.time.temporal.TemporalUnit;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -53,6 +57,7 @@ public class MavenHttpClient {
                 .doOnNext(res -> this.jwt = res.getToken())
                 .doOnNext(res -> log.info("connect - logged in successfully using credentials: {}", properties.getUsername()))
                 .doOnError(e -> log.error("connect - failed to login using credentials: {}", properties.getUsername(), e))
+                .retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100)))
                 ;
     }
 

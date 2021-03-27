@@ -14,21 +14,25 @@ spring:
 #                secure: false #true?
   kafka:
     consumer:
-      bootstrap-servers: battleships.cc:9092
-      auto-offset-reset: earliest
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      bootstrap-servers: pkc-lq8gm.westeurope.azure.confluent.cloud:9092
+      auto-offset-reset: latest
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        basic.auth.credentials.source: XWAX5C4GBM3GYFGL
-        basic.auth.user.info: XWAX5C4GBM3GYFGL:8MDlm53MB00dAjk5pvtko26JYU0p1+PqFC4pfjTVubk3OlqQvKf93VsuYpZQXysS
+        security.protocol: SASL_SSL
+        sasl.mechanism: PLAIN
+        sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="XWAX5C4GBM3GYFGL" password="8MDlm53MB00dAjk5pvtko26JYU0p1+PqFC4pfjTVubk3OlqQvKf93VsuYpZQXysS";
+      group-id: group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3
     producer:
       bootstrap-servers: battleships.cc:9092
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-          basic.auth.credentials.source: XWAX5C4GBM3GYFGL
-          basic.auth.user.info: XWAX5C4GBM3GYFGL:8MDlm53MB00dAjk5pvtko26JYU0p1+PqFC4pfjTVubk3OlqQvKf93VsuYpZQXysS
+       security.protocol: SASL_SSL
+       sasl.mechanism: PLAIN
+       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="XWAX5C4GBM3GYFGL" password="8MDlm53MB00dAjk5pvtko26JYU0p1+PqFC4pfjTVubk3OlqQvKf93VsuYpZQXysS";
 maven:
   username: maven
   password: qmuzGEmgr7UWMk!FG3ToJM
+  ignoreMessages: true
   kafka:
     topicGameStarted: cc.battleships.game.started
     topicGameEnded: cc.battleships.game.ended

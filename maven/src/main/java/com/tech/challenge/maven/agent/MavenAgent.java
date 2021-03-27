@@ -1,6 +1,7 @@
 package com.tech.challenge.maven.agent;
 
 import com.tech.challenge.maven.agent.ai.RandomBattleshipPositionDecider;
+import com.tech.challenge.maven.agent.ai.RandomBattleshipTargetDecider;
 import com.tech.challenge.maven.config.MavenConfigurationProperties;
 import com.tech.challenge.maven.http.MavenHttpClient;
 import com.tech.challenge.maven.kafka.KafkaClient;
@@ -21,18 +22,24 @@ public class MavenAgent {
     private final MavenBrain brain;
     private final int maxAttempts = 10;
     private final RandomBattleshipPositionDecider battleshipPositionDecider;
+    private final RandomBattleshipTargetDecider targetDecider;
+    private final MavenConfigurationProperties properties;
 
     public MavenAgent(MavenHttpClient http, KafkaClient kafka, MavenConfigurationProperties properties,
-                      RandomBattleshipPositionDecider battleshipPositionDecider) {
+                      RandomBattleshipPositionDecider battleshipPositionDecider, RandomBattleshipTargetDecider targetDecider) {
         this.http = http;
         this.kafka = kafka;
         this.battleshipPositionDecider = battleshipPositionDecider;
+        this.properties = properties;
+        this.targetDecider = targetDecider;
 
         brain = new MavenBrain();// newborn
     }
 
     public Mono<String> onGameStarted(GameStarted gameStarted) {
         log.info("onGameStarted - game: {}", gameStarted);
+        if (properties.isIgnoreMessages())
+            return Mono.empty();
         brain.gameStarted(gameStarted);
 
         BattleshipPosition battlefieldPosition = battleshipPositionDecider.next(brain.getMemory());
@@ -71,6 +78,8 @@ public class MavenAgent {
     }
 
     public void onGameEnded(GameEnded gameEnded) {
+        if (properties.isIgnoreMessages())
+            return;
         log.info("onGameEnded - game: {}", gameEnded);
         brain.gameEnded(gameEnded);
 
@@ -78,20 +87,38 @@ public class MavenAgent {
 
     public Mono<Void> onRoundStarted(RoundStarted roundStarted) {
         log.info("onRoundStarted - round: {}", roundStarted);
+        if (properties.isIgnoreMessages())
+            return Mono.empty();
+
+        brain.roundStart(roundStarted);
 
         ShotFired shotFired = new ShotFired();
         shotFired.setGameId(roundStarted.getGameId());
         shotFired.setTournamentId(roundStarted.getTournamentId());
         shotFired.setRoundNo(roundStarted.getRoundNo());
 
-        Tuple2<Integer, Integer> xy = brain.getNextTargetPoint();
-        shotFired.setX(xy.getT1());
-        shotFired.setY(xy.getT2());
+        Shot xy = targetDecider.next(brain.getMemory());
+        shotFired.setX(xy.getX());
+        shotFired.setY(xy.getY());
 
         return kafka.shoot(shotFired)
-                .doOnNext(r -> log.debug("shoot - round: {}, success: {}", roundStarted, shotFired))
+                .doOnNext(r -> {
+                    log.debug("shoot - round: {}, success: {}", roundStarted, shotFired);
+                    brain.rememberShoot(xy.getX(), xy.getY());
+                })
                 .doOnError(e -> {
-                    log.error("shoot - error", e);
+                    log.error("shoot - error, retry", e);
+                    Shot retry = targetDecider.next(brain.getMemory());
+                    shotFired.setX(retry.getX());
+                    shotFired.setY(retry.getY());
+                    kafka.shoot(shotFired)
+                            .doOnNext(r -> {
+                                log.debug("shoot - round: {}, success: {}", roundStarted, shotFired);
+                                brain.rememberShoot(retry.getX(), retry.getY());
+                            })
+                            .doOnError(e2 -> {
+                                log.error("shoot - error", e2);
+                            });
                 })
                 .then();
 
@@ -99,6 +126,8 @@ public class MavenAgent {
 
     public void onRoundEnded(RoundEnded roundEnded) {
         log.info("onRoundEnded - round: {}", roundEnded);
+        if (properties.isIgnoreMessages())
+            return;
         brain.roundEnded(roundEnded);
     }
 

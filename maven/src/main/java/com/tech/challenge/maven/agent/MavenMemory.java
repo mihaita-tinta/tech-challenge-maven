@@ -9,6 +9,8 @@ import reactor.util.function.Tuples;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +20,7 @@ public class MavenMemory {
     int currentBattlegroundSize;
     BattleshipPosition currentPosition;
     BattleshipTemplate currentBattleshipTemplate;
+    Cell core;
     Replay currentPlay;
     Shot currentShot;
 
@@ -27,12 +30,14 @@ public class MavenMemory {
     public void gameStarted(GameStarted gameStarted) {
         setCurrentBattlegroundSize(gameStarted.getBattlegroundSize());
         setCurrentBattleshipTemplate(gameStarted.getBattleshipTemplate());
+        setCore(gameStarted.getCore());
 
         currentPlay = Replay.builder()
                         .battlegroundSize(gameStarted.getBattlegroundSize())
                         .template(gameStarted.getBattleshipTemplate())
-                        .myShots(new ArrayList<>())
-                        .allShots(new ArrayList<>())
+                        .kills(new HashMap<>())
+                        .miss(new HashMap<>())
+                        .hits(new HashMap<>())
                         .build();
     }
 
@@ -42,22 +47,29 @@ public class MavenMemory {
     }
 
     public void roundEnded(RoundEnded roundEnded) {
-        currentPlay.allShots.addAll(
-                roundEnded.getShots()
-                .stream()
-                .map(shot -> {
+        roundEnded.getShots()
+                .forEach(shot -> {
+                    if (shot.isMiss()) {
+                        currentPlay.miss.putIfAbsent(shot, 1);
+                    }
+                    if (shot.isKill()) {
+                        Integer existing = currentPlay.kills.getOrDefault(shot, 0);
+                        currentPlay.kills.put(shot, existing + 1);
+                    }
+                    if (shot.isHit()) {
+                        Integer existing = currentPlay.hits.getOrDefault(shot, 0);
+                        currentPlay.hits.put(shot, existing + 1);
+                    }
+
                     if (currentShot.getX() == shot.getX() && currentShot.getY() == shot.getY()) {
                         currentShot.setStatus(shot.getStatus());
                     }
-                    return shot;
-                })
-                .collect(Collectors.toList())
-        );
-        currentPlay.myShots.add(currentShot);
+                });
     }
 
     public void roundStart(RoundStarted roundStarted) {
-
+        currentShot = Shot.builder()
+                .build();
     }
 
     public void rememberBattleshipPositionFailedAttempt(BattleshipPosition battleshipPosition) {

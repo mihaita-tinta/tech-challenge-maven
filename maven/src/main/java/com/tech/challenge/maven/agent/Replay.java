@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Data
 @Builder
@@ -16,6 +18,8 @@ public class Replay {
     BattleshipTemplate template;
     BattleshipPosition position;
 
-    List<Shot> myShots;
-    List<Shot> allShots;
+    Map<Shot, Integer> hits;
+    Map<Shot, Integer> kills;
+    Map<Shot, Integer> miss;
+
 }

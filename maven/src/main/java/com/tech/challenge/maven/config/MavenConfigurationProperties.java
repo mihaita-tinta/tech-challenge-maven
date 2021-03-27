@@ -13,4 +13,5 @@ public class MavenConfigurationProperties {
     private String password;
     private MavenHttpConfigurationProperties http;
     private MavenKafkaConfigurationProperties kafka;
+    private boolean ignoreMessages;
 }
