@@ -58,12 +58,13 @@ public class MavenMemory {
                 .forEach(shot -> {
                     if (shot.isMiss()) {
                         currentPlay.miss.putIfAbsent(shot, 1);
+                        currentPlay.hits.remove(shot);
                     }
                     if (shot.isKill()) {
                         Integer existing = currentPlay.kills.getOrDefault(shot, 0);
                         currentPlay.kills.put(shot, existing + 1);
                     }
-                    if (shot.isHit()) {
+                    if (shot.isHit() && currentPlay.battleship.getOrDefault(shot, -1) == -1) {
                         Integer existing = currentPlay.hits.getOrDefault(shot, 0);
                         currentPlay.hits.put(shot, existing + 1);
                     }

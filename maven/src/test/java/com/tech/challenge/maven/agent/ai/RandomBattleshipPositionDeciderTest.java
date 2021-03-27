@@ -93,7 +93,7 @@ class RandomBattleshipPositionDeciderTest {
                 .thenReturn(template);
         BattleshipPosition next = decider.next(memory);
         next.setX(0);
-        next.setY(1);
+        next.setY(4);
         next.setDirection(BattleshipRequestBody.Direction.WEST);
         for (int row =0 ; row < size; row++ ) {
 

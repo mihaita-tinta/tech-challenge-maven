@@ -9,8 +9,14 @@ import com.tech.challenge.maven.kafka.events.*;
 import com.tech.challenge.maven.model.BattleshipPosition;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -36,49 +42,44 @@ public class MavenAgent {
         brain = new MavenBrain();// newborn
     }
 
-    public Mono<String> onGameStarted(GameStarted gameStarted) {
+    public void onGameStarted(GameStarted gameStarted) {
         log.info("onGameStarted - game: {}", gameStarted);
         if (properties.isIgnoreMessages() || !gameStarted.getTournamentId().equals(properties.getTournamentId()))
-            return Mono.empty();
-        brain.gameStarted(gameStarted);
+            return;
 
-        BattleshipPosition battlefieldPosition = battleshipPositionDecider.next(brain.getMemory());
-        return placeBattlefield(gameStarted, battlefieldPosition, 0)
-                .doOnError(e -> {
-                    log.error("onGameStarted - failed to place battleship: {}", battlefieldPosition, e);
-                });
+        brain.gameStarted(gameStarted);
+        placeBattlefield(gameStarted);
     }
 
-    private Mono<String> placeBattlefield(GameStarted gameStarted, BattleshipPosition battlefieldPosition, int attempt) {
-        log.warn("placeBattlefield - attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+    private void placeBattlefield(GameStarted gameStarted) {
 
-        if (attempt > maxAttempts)
-            throw new IllegalStateException("max attempts reached");
+        BattleshipPosition battlefieldPosition = battleshipPositionDecider.next(brain.getMemory());
+        log.warn("placeBattlefield - attempt: {}, game: {}, battlefieldPosition: {}", gameStarted, battlefieldPosition);
 
-        return Mono
-                .deferContextual(ctx -> {
-                    Integer retriesLeft = ctx.getOrDefault("retriesLeft", maxAttempts - attempt);
-                    if (retriesLeft > 0) {
-                        return Mono.just(ctx);
-                    }
-                    return Mono.error(new IllegalStateException("no more retries"));
-                })
-                .flatMap(ctx -> http.placeBattleship(gameStarted.getTournamentId(),
-                        gameStarted.getGameId(),
-                        battlefieldPosition.getX(),
-                        battlefieldPosition.getY(),
-                        battlefieldPosition.getDirection())
-                        .doOnNext(success -> {
-                            brain.rememberBattleshipPosition(battlefieldPosition);
-                            log.info("placeBattlefield - successful attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
-                        }))
-                .onErrorResume(e -> {
-                    log.warn("placeBattlefield - failed attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
-                    brain.rememberBattleshipPositionFailedAttempt(battlefieldPosition);
-                    // TODO verify this is caused by a valid position on the map, indicating there may be an opponent boat there.
-                    BattleshipPosition newBattlefieldPosition = battleshipPositionDecider.next(brain.getMemory());
-                    return placeBattlefield(gameStarted, newBattlefieldPosition, attempt + 1);
-                });
+        boolean done = false;
+        int currentAttempt = 0;
+        while (!done && currentAttempt < 10) {
+            try {
+                placeInternalAttempt(gameStarted, battlefieldPosition, currentAttempt++);
+                done = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                done = false;
+            }
+        }
+    }
+
+    private void placeInternalAttempt(GameStarted gameStarted, BattleshipPosition battlefieldPosition, int attempt) {
+            http.placeBattleship(gameStarted.getTournamentId(),
+                    gameStarted.getGameId(),
+                    battlefieldPosition.getX(),
+                    battlefieldPosition.getY(),
+                    battlefieldPosition.getDirection())
+                    .doOnNext(success -> {
+                        brain.rememberBattleshipPosition(battlefieldPosition);
+                        log.info("placeBattlefield - successful attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+                    }).block();
+
     }
 
     public void onGameEnded(GameEnded gameEnded) {
@@ -91,10 +92,10 @@ public class MavenAgent {
     }
 
     public Mono<Void> onRoundStarted(RoundStarted roundStarted) {
-        log.info("onRoundStarted - round: {}", roundStarted);
         if (properties.isIgnoreMessages() || !roundStarted.getTournamentId().equals(properties.getTournamentId())
                 || !roundStarted.getGameId().equals(brain.memory.currentGameId))
             return Mono.empty();
+        log.info("onRoundStarted - round: {}", roundStarted);
 
         brain.roundStart(roundStarted);
 
@@ -131,10 +132,10 @@ public class MavenAgent {
     }
 
     public void onRoundEnded(RoundEnded roundEnded) {
-        log.info("onRoundEnded - round: {}", roundEnded);
         if (properties.isIgnoreMessages() || !roundEnded.getTournamentId().equals(properties.getTournamentId())
                 || !roundEnded.getGameId().equals(brain.memory.currentGameId))
             return;
+        log.info("onRoundEnded - round: {}", roundEnded);
         brain.roundEnded(roundEnded);
     }
 

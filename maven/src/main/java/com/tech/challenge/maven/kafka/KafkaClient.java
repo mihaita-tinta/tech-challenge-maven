@@ -30,7 +30,7 @@ public class KafkaClient {
     }
 
     public Mono<SendResult<Integer, String>> shoot(ShotFired shotFired) {
-        log.debug("shoot - shotFired: {}", shotFired);
+        log.info("shoot - shotFired: {}", shotFired);
         Mono<SendResult<Integer, String>> sendResultMono = null;
         try {
             sendResultMono = Mono.fromFuture(kafka.send(topic, mapper.writeValueAsString(shotFired)).completable());

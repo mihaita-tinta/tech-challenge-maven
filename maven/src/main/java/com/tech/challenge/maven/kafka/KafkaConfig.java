@@ -33,34 +33,33 @@ public class KafkaConfig {
     @Autowired
     ObjectMapper mapper;
 
-    @KafkaListener(groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicGameStarted}")
+    @KafkaListener(id = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3-4",groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicGameStarted}")
     public void listenGameStarted(String input) throws JsonProcessingException {
-        log.info("listenGameStarted - input: {}", input);
+        log.debug("listenGameStarted - input: {}", input);
         GameStarted event = mapper.readValue(input, GameStarted.class);
         mavenAgent
-                .onGameStarted(event)
-                .subscribe();
+                .onGameStarted(event);
     }
 
-    @KafkaListener(groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicGameEnded}")
+    @KafkaListener(id = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3-3",groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicGameEnded}")
     public void listenGameEnded(String input) throws JsonProcessingException {
-        log.info("listenGameEnded - input: {}", input);
+        log.debug("listenGameEnded - input: {}", input);
         GameEnded event = mapper.readValue(input, GameEnded.class);
         mavenAgent.onGameEnded(event);
     }
 
-    @KafkaListener(groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicRoundStarted}")
+    @KafkaListener(id = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3-2", groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicRoundStarted}")
     public void listenRoundStarted(String input) throws JsonProcessingException {
-        log.info("listenRoundStarted - input: {}", input);
+        log.debug("listenRoundStarted - input: {}", input);
         RoundStarted event = mapper.readValue(input, RoundStarted.class);
         mavenAgent
                 .onRoundStarted(event)
                 .subscribe();
     }
 
-    @KafkaListener(groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicRoundEnded}")
+    @KafkaListener(id = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3-1",groupId = "group-21bb9c95-a2c8-4ea9-bffa-a9ae28ed9aa3", topics = "${maven.kafka.topicRoundEnded}")
     public void listenRoundEnded(String input) throws JsonProcessingException {
-        log.info("listenRoundEnded - input: {}", input);
+        log.debug("listenRoundEnded - input: {}", input);
         RoundEnded roundEnded = mapper.readValue(input, RoundEnded.class);
         mavenAgent.onRoundEnded(roundEnded);
     }

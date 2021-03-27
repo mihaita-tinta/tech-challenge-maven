@@ -33,7 +33,7 @@ maven:
   username: maven
   password: qmuzGEmgr7UWMk!FG3ToJM
   ignoreMessages: false
-  tournamentId: lal3WkLKV0
+  tournamentId: 6EQkxJyilu
   kafka:
     topicGameStarted: cc.battleships.game.started
     topicGameEnded: cc.battleships.game.ended
@@ -41,6 +41,6 @@ maven:
     topicRoundEnded: cc.battleships.round.ended
     topicRoundShoot: cc.battleships.shot
   http:
-    scheme: https
+    scheme: http
     host: battleships.cc
-    port: 443
+    port: 80
