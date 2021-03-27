@@ -102,7 +102,7 @@ public class MavenAgent {
         shotFired.setX(xy.getX());
         shotFired.setY(xy.getY());
 
-        return kafka.shoot(shotFired)
+        return kafka.shoot(shotFired, http.jwt)
                 .doOnNext(r -> {
                     log.debug("shoot - round: {}, success: {}", roundStarted, shotFired);
                     brain.rememberShoot(xy.getX(), xy.getY());
@@ -112,7 +112,7 @@ public class MavenAgent {
                     Shot retry = targetDecider.next(brain.getMemory());
                     shotFired.setX(retry.getX());
                     shotFired.setY(retry.getY());
-                    kafka.shoot(shotFired)
+                    kafka.shoot(shotFired, http.jwt)
                             .doOnNext(r -> {
                                 log.debug("shoot - round: {}, success: {}", roundStarted, shotFired);
                                 brain.rememberShoot(retry.getX(), retry.getY());

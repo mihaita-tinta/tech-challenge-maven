@@ -34,7 +34,7 @@ public class MavenHttpClient {
     private static final Logger log = getLogger(MavenHttpClient.class);
 
     private final MavenConfigurationProperties properties;
-    String jwt;
+    public String jwt;
 
     InMemoryRepository inMemoryRepository = new InMemoryRepository();
 

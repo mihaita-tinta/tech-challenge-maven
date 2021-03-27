@@ -33,7 +33,7 @@ maven:
   username: maven
   password: qmuzGEmgr7UWMk!FG3ToJM
   ignoreMessages: false
-  tournamentId: IR1ET1-v9J
+  tournamentId: FLNyT_Jgo1
   kafka:
     topicGameStarted: cc.battleships.game.started
     topicGameEnded: cc.battleships.game.ended
