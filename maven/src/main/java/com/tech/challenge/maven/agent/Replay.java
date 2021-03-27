@@ -22,4 +22,6 @@ public class Replay {
     Map<Shot, Integer> kills;
     Map<Shot, Integer> miss;
 
+    Map<Shot, Integer> battleship;
+
 }

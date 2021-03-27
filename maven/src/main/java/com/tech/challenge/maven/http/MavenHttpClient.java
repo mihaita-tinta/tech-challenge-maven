@@ -86,12 +86,19 @@ public class MavenHttpClient {
                                         int x, int y, BattleshipRequestBody.Direction direction) {
         return client
                 .post()
-                .uri("tournaments/{tournamentId}/battleships", tournamentId)
+                .uri("/api/tournaments/{tournamentId}/battleships", tournamentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(headers -> headers.setBearerAuth(jwt))
                 .bodyValue(new BattleshipRequestBody(gameId, x, y, direction))
-                .retrieve()
-                .bodyToMono(String.class);
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        log.info("placeBattleship - successfully for tournamentId: {}, gameId: {}", tournamentId, gameId);
+                        return response.bodyToMono(String.class);
+                    }
+
+                    return response.bodyToMono(String.class)
+                            .flatMap(res -> Mono.error(new IllegalStateException("could not place: " + res)));
+                });
     }
 
     public Mono<String> hi(String name) {

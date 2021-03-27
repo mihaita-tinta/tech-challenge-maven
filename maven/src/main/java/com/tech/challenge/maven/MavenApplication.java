@@ -1,5 +1,6 @@
 package com.tech.challenge.maven;
 
+import com.tech.challenge.maven.config.MavenConfigurationProperties;
 import com.tech.challenge.maven.http.MavenHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -21,11 +22,10 @@ public class MavenApplication {
 	}
 
 	@Bean
-	public ApplicationRunner runner() {
+	public ApplicationRunner runner(MavenConfigurationProperties properties) {
 		return args -> {
-			String tournamentId = args.getOptionValues("tournamentId").get(0);
 			http.login()
-					.flatMap(r -> http.registerTournament(tournamentId))
+					.flatMap(r -> http.registerTournament(properties.getTournamentId()))
 					.subscribe();
 		};
 	}

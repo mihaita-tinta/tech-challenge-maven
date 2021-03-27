@@ -34,7 +34,8 @@ public class RandomBattleshipTargetDecider {
                 .x(x)
                 .y(y)
                 .build();
-        while (memory.getCurrentPlay().getMiss().containsKey(newShot)) {
+        while (memory.getCurrentPlay().getMiss().containsKey(newShot)
+                || memory.getCurrentPlay().getBattleship().containsKey(newShot)) {
             x = random.nextInt(battlegroundSize);
             y = random.nextInt(battlegroundSize);
             newShot.setX(x);

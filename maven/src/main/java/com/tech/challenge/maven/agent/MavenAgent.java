@@ -38,7 +38,7 @@ public class MavenAgent {
 
     public Mono<String> onGameStarted(GameStarted gameStarted) {
         log.info("onGameStarted - game: {}", gameStarted);
-        if (properties.isIgnoreMessages())
+        if (properties.isIgnoreMessages() || !gameStarted.getTournamentId().equals(properties.getTournamentId()))
             return Mono.empty();
         brain.gameStarted(gameStarted);
 
@@ -51,6 +51,10 @@ public class MavenAgent {
 
     private Mono<String> placeBattlefield(GameStarted gameStarted, BattleshipPosition battlefieldPosition, int attempt) {
         log.warn("placeBattlefield - attempt: {}, game: {}, battlefieldPosition: {}", attempt, gameStarted, battlefieldPosition);
+
+        if (attempt > maxAttempts)
+            throw new IllegalStateException("max attempts reached");
+
         return Mono
                 .deferContextual(ctx -> {
                     Integer retriesLeft = ctx.getOrDefault("retriesLeft", maxAttempts - attempt);
@@ -78,7 +82,8 @@ public class MavenAgent {
     }
 
     public void onGameEnded(GameEnded gameEnded) {
-        if (properties.isIgnoreMessages())
+        if (properties.isIgnoreMessages() || !gameEnded.getTournamentId().equals(properties.getTournamentId())
+                || !gameEnded.getGameId().equals(brain.memory.currentGameId))
             return;
         log.info("onGameEnded - game: {}", gameEnded);
         brain.gameEnded(gameEnded);
@@ -87,7 +92,8 @@ public class MavenAgent {
 
     public Mono<Void> onRoundStarted(RoundStarted roundStarted) {
         log.info("onRoundStarted - round: {}", roundStarted);
-        if (properties.isIgnoreMessages())
+        if (properties.isIgnoreMessages() || !roundStarted.getTournamentId().equals(properties.getTournamentId())
+                || !roundStarted.getGameId().equals(brain.memory.currentGameId))
             return Mono.empty();
 
         brain.roundStart(roundStarted);
@@ -126,7 +132,8 @@ public class MavenAgent {
 
     public void onRoundEnded(RoundEnded roundEnded) {
         log.info("onRoundEnded - round: {}", roundEnded);
-        if (properties.isIgnoreMessages())
+        if (properties.isIgnoreMessages() || !roundEnded.getTournamentId().equals(properties.getTournamentId())
+                || !roundEnded.getGameId().equals(brain.memory.currentGameId))
             return;
         brain.roundEnded(roundEnded);
     }

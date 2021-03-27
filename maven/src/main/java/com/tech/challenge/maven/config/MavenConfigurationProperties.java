@@ -11,6 +11,7 @@ public class MavenConfigurationProperties {
 
     private String username;
     private String password;
+    private String tournamentId;
     private MavenHttpConfigurationProperties http;
     private MavenKafkaConfigurationProperties kafka;
     private boolean ignoreMessages;

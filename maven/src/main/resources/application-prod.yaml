@@ -1,17 +1,6 @@
 server:
   port: 8080
 spring:
-#  cloud:
-#    discovery:
-#      client:
-#        simple:
-#          instances:
-#            backend:
-#              - instanceId: backend1
-#                serviceId: backend
-#                host: localhost
-#                port: 8080
-#                secure: false #true?
   kafka:
     consumer:
       bootstrap-servers: pkc-lq8gm.westeurope.azure.confluent.cloud:9092
@@ -42,5 +31,5 @@ maven:
     topicRoundShoot: cc.battleships.shot
   http:
     scheme: https
-    host: battleships.cc
+    host: prod.battleships.cc
     port: 443

@@ -67,7 +67,7 @@ class MavenHttpClientTest {
     public void testPlaceBattleship() {
         client.jwt = "_JWT_";
 
-        stubFor(post(urlEqualTo("/tournaments/BnIy16hjAt/battleships"))
+        stubFor(post(urlEqualTo("/api/tournaments/BnIy16hjAt/battleships"))
                 .withHeader("Content-Type", equalTo("application/json"))
                 .withHeader("Authorization", equalTo("Bearer _JWT_"))
                 .withRequestBody(containing("{\"gameId\":\"BnIy16hjAt-1\",\"x\":4,\"y\":6,\"direction\":\"NORTH\"}"))
@@ -80,6 +80,7 @@ class MavenHttpClientTest {
                     "BnIy16hjAt-1",
                     4, 6,
                     BattleshipRequestBody.Direction.NORTH);
+        log.info("test:{}", r.block());
         StepVerifier.create(r)
                 .assertNext(res -> {})
                 .expectComplete()

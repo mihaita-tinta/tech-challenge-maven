@@ -1,5 +1,6 @@
 package com.tech.challenge.maven.agent;
 
+import com.tech.challenge.maven.agent.ai.PositionCalculator;
 import com.tech.challenge.maven.http.model.BattleshipRequestBody;
 import com.tech.challenge.maven.kafka.events.*;
 import com.tech.challenge.maven.model.BattleshipPosition;
@@ -20,17 +21,22 @@ public class MavenMemory {
     int currentBattlegroundSize;
     BattleshipPosition currentPosition;
     BattleshipTemplate currentBattleshipTemplate;
+    String currentGameId;
+    String tournamentId;
     Cell core;
     Replay currentPlay;
     Shot currentShot;
 
     List<BattleshipPosition> failedPositionAttempts = new ArrayList<>();
     List<Replay> replays = new ArrayList<>();
+    PositionCalculator positionCalculator = new PositionCalculator();
 
     public void gameStarted(GameStarted gameStarted) {
         setCurrentBattlegroundSize(gameStarted.getBattlegroundSize());
         setCurrentBattleshipTemplate(gameStarted.getBattleshipTemplate());
         setCore(gameStarted.getCore());
+        currentGameId = gameStarted.getGameId();
+        tournamentId = gameStarted.getTournamentId();
 
         currentPlay = Replay.builder()
                         .battlegroundSize(gameStarted.getBattlegroundSize())
@@ -38,6 +44,7 @@ public class MavenMemory {
                         .kills(new HashMap<>())
                         .miss(new HashMap<>())
                         .hits(new HashMap<>())
+                        .battleship(new HashMap<>())
                         .build();
     }
 
@@ -74,6 +81,18 @@ public class MavenMemory {
 
     public void rememberBattleshipPositionFailedAttempt(BattleshipPosition battleshipPosition) {
         failedPositionAttempts.add(battleshipPosition);
+    }
+
+    public void setCurrentPosition(BattleshipPosition position) {
+        this.currentPosition = position;
+
+
+        positionCalculator
+                .getPoints(currentBattlegroundSize, currentBattleshipTemplate,
+                        position.getX(), position.getY(), position.getDirection())
+        .forEach(shot -> this.currentPlay.battleship.putIfAbsent(shot, 0));
+
+
     }
 
 }

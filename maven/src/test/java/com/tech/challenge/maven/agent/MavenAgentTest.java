@@ -37,7 +37,7 @@ class MavenAgentTest {
     @Mock
     RoundStarted round;
     @Mock
-    SendResult<Integer, ShotFired> shot;
+    SendResult<Integer, String> shot;
 
     @Mock
     RandomBattleshipPositionDecider battleshipPositionDecider;
